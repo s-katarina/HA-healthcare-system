@@ -1,0 +1,103 @@
+version: '3'
+
+services:
+  postgresql-master:
+    image: 'docker.io/bitnami/postgresql-repmgr:latest'
+    ports:
+      - '5432:5432'
+    environment:
+#      - POSTGRESQL_REPLICATION_MODE=master
+#      - POSTGRESQL_REPLICATION_USER=repl_user
+#      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRESQL_POSTGRES_PASSWORD=my_password
+      - POSTGRESQL_USERNAME=my_user
+      - POSTGRESQL_PASSWORD=my_password
+      - POSTGRESQL_DATABASE=my_database
+      - REPMGR_PRIMARY_HOST=postgresql-master
+      - REPMGR_PARTNER_NODES=pg-1,pg-2,pg-0
+      - REPMGR_NODE_NAME=pg-0
+      - REPMGR_NODE_ID=1
+      - REPMGR_NODE_NETWORK_NAME=postgresql-master
+      - REPMGR_USERNAME=repmgr_user
+      - REPMGR_PASSWORD=repmgr_password
+    volumes:
+      - 'postgresql_master_data:/bitnami/postgresql'
+  postgresql-slave:
+    image: 'docker.io/bitnami/postgresql-repmgr:latest'
+    ports:
+      - '5433:5432'
+    environment:
+#      - POSTGRESQL_REPLICATION_MODE=slave
+#      - POSTGRESQL_REPLICATION_USER=repl_user
+#      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+#      - POSTGRESQL_MASTER_HOST=postgresql-master
+#      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+#      - POSTGRESQL_PASSWORD=my_password
+      - POSTGRESQL_POSTGRES_PASSWORD=my_password
+      - POSTGRESQL_USERNAME=my_user
+      - POSTGRESQL_PASSWORD=my_password
+      - POSTGRESQL_DATABASE=my_database
+      - REPMGR_PRIMARY_HOST=postgresql-master
+      - REPMGR_PARTNER_NODES=pg-0,pg-2,pg-1
+      - REPMGR_NODE_NAME=pg-1
+      - REPMGR_NODE_ID=2
+      - REPMGR_NODE_NETWORK_NAME=postgresql-slave
+      - REPMGR_USERNAME=repmgr_user
+      - REPMGR_PASSWORD=repmgr_password
+    volumes:
+      - 'postgresql_slave_data:/bitnami/postgresql'
+    depends_on:
+      - postgresql-master
+  postgresql-slave2:
+    image: 'docker.io/bitnami/postgresql-repmgr:latest'
+    ports:
+      - '5434:5432'
+    environment:
+#      - POSTGRESQL_REPLICATION_MODE=slave
+#      - POSTGRESQL_REPLICATION_USER=repl_user
+#      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+#      - POSTGRESQL_MASTER_HOST=postgresql-master
+#      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+#      - POSTGRESQL_PASSWORD=my_password
+      - POSTGRESQL_POSTGRES_PASSWORD=my_password
+      - POSTGRESQL_USERNAME=my_user
+      - POSTGRESQL_PASSWORD=my_password
+      - POSTGRESQL_DATABASE=my_database
+      - REPMGR_PRIMARY_HOST=postgresql-master
+      - REPMGR_PARTNER_NODES=pg-0,pg-1,pg-2
+      - REPMGR_NODE_NAME=pg-2
+      - REPMGR_NODE_ID=3
+      - REPMGR_NODE_NETWORK_NAME=postgresql-slave2
+      - REPMGR_USERNAME=repmgr_user
+      - REPMGR_PASSWORD=repmgr_password
+    volumes:
+      - 'postgresql_slave2_data:/bitnami/postgresql'
+    depends_on:
+      - postgresql-master
+  pgpool:
+    image: bitnami/pgpool:latest
+    ports:
+      - '5435:5432'
+    environment:
+      - PGPOOL_BACKEND_NODES=1:postgresql-master:5432,2:postgresql-slave:5433,3:postgresql-slave2:5434
+      - PGPOOL_ENABLE_LOAD_BALANCING=yes
+      - PGPOOL_SR_CHECK_USER=repmgr_user
+      - PGPOOL_SR_CHECK_PASSWORD=repmgr_password
+      - PGPOOL_POSTGRES_USERNAME=postgres
+      - PGPOOL_POSTGRES_PASSWORD=my_password
+      - PGPOOL_ADMIN_USERNAME=pgpool_user
+      - PGPOOL_ADMIN_PASSWORD=pgpool_password
+      - PGPOOL_LOG_LEVEL=DEBUG
+    depends_on:
+      - postgresql-master
+      - postgresql-slave
+      - postgresql-slave2
+
+volumes:
+  postgresql_master_data:
+    driver: local
+  postgresql_slave_data:
+    driver: local
+  postgresql_slave2_data:
+    driver: local
+
