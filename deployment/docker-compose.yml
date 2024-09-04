@@ -22,6 +22,7 @@ services:
       - REPMGR_PASSWORD=repmgr_password
     volumes:
       - 'postgresql_master_data:/bitnami/postgresql'
+      - './init.sql:/docker-entrypoint-initdb.d/init.sql'
   postgresql-slave:
     image: 'docker.io/bitnami/postgresql-repmgr:latest'
     ports:
@@ -92,6 +93,19 @@ services:
       - postgresql-master
       - postgresql-slave
       - postgresql-slave2
+
+  patient-core-data-service:
+    build:
+      context: ../PatientCoreData
+    container_name: patient-core-data-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://pgpool:5432/my_database
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: my_password
+    depends_on:
+      - pgpool
 
 volumes:
   postgresql_master_data:
