@@ -1,5 +1,6 @@
 package com.patientcoredata.service.impl;
 
+import com.patientcoredata.dto.CreatePatientRecordDTO;
 import com.patientcoredata.dto.GetPatientRecordDTO;
 import com.patientcoredata.exception.PatientRecordWithPatientIdNotFoundException;
 import com.patientcoredata.mapper.PatientRecordMapper;
@@ -29,5 +30,12 @@ public class PatientRecordServiceImpl implements PatientRecordService {
     @Override
     public List<GetPatientRecordDTO> getAll() {
         return patientRecordRepository.findAll().stream().map(mapper::mapToDTO).toList();
+    }
+
+    @Override
+    public GetPatientRecordDTO add(CreatePatientRecordDTO dto) {
+        PatientRecord patientRecord = mapper.mapCreateToPatientRecord(dto);
+        patientRecordRepository.save(patientRecord);
+        return mapper.mapToDTO(patientRecord);
     }
 }
