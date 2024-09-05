@@ -2,6 +2,7 @@ package com.patientcoredata.service.impl;
 
 import com.patientcoredata.dto.CreatePatientRecordDTO;
 import com.patientcoredata.dto.GetPatientRecordDTO;
+import com.patientcoredata.exception.PatientRecordWithPatientIdAlreadyExistsException;
 import com.patientcoredata.exception.PatientRecordWithPatientIdNotFoundException;
 import com.patientcoredata.mapper.PatientRecordMapper;
 import com.patientcoredata.model.PatientRecord;
@@ -34,6 +35,9 @@ public class PatientRecordServiceImpl implements PatientRecordService {
 
     @Override
     public GetPatientRecordDTO add(CreatePatientRecordDTO dto) {
+        if (patientRecordRepository.existsByPatientId(dto.getPatientId())) {
+            throw new PatientRecordWithPatientIdAlreadyExistsException(dto.getPatientId());
+        }
         PatientRecord patientRecord = mapper.mapCreateToPatientRecord(dto);
         patientRecordRepository.save(patientRecord);
         return mapper.mapToDTO(patientRecord);

@@ -6,9 +6,6 @@ services:
     ports:
       - '5432:5432'
     environment:
-#      - POSTGRESQL_REPLICATION_MODE=master
-#      - POSTGRESQL_REPLICATION_USER=repl_user
-#      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
       - POSTGRESQL_POSTGRES_PASSWORD=my_password
       - POSTGRESQL_USERNAME=my_user
       - POSTGRESQL_PASSWORD=my_password
@@ -23,17 +20,17 @@ services:
     volumes:
       - 'postgresql_master_data:/bitnami/postgresql'
       - './init.sql:/docker-entrypoint-initdb.d/init.sql'
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      retries: 5
+      timeout: 15s
+
   postgresql-slave:
     image: 'docker.io/bitnami/postgresql-repmgr:latest'
     ports:
       - '5433:5432'
     environment:
-#      - POSTGRESQL_REPLICATION_MODE=slave
-#      - POSTGRESQL_REPLICATION_USER=repl_user
-#      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
-#      - POSTGRESQL_MASTER_HOST=postgresql-master
-#      - POSTGRESQL_MASTER_PORT_NUMBER=5432
-#      - POSTGRESQL_PASSWORD=my_password
       - POSTGRESQL_POSTGRES_PASSWORD=my_password
       - POSTGRESQL_USERNAME=my_user
       - POSTGRESQL_PASSWORD=my_password
@@ -49,17 +46,17 @@ services:
       - 'postgresql_slave_data:/bitnami/postgresql'
     depends_on:
       - postgresql-master
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      retries: 5
+      timeout: 15s
+
   postgresql-slave2:
     image: 'docker.io/bitnami/postgresql-repmgr:latest'
     ports:
       - '5434:5432'
     environment:
-#      - POSTGRESQL_REPLICATION_MODE=slave
-#      - POSTGRESQL_REPLICATION_USER=repl_user
-#      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
-#      - POSTGRESQL_MASTER_HOST=postgresql-master
-#      - POSTGRESQL_MASTER_PORT_NUMBER=5432
-#      - POSTGRESQL_PASSWORD=my_password
       - POSTGRESQL_POSTGRES_PASSWORD=my_password
       - POSTGRESQL_USERNAME=my_user
       - POSTGRESQL_PASSWORD=my_password
@@ -75,6 +72,12 @@ services:
       - 'postgresql_slave2_data:/bitnami/postgresql'
     depends_on:
       - postgresql-master
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      retries: 5
+      timeout: 15s
+
   pgpool:
     image: bitnami/pgpool:latest
     ports:
@@ -89,6 +92,11 @@ services:
       - PGPOOL_ADMIN_USERNAME=pgpool_user
       - PGPOOL_ADMIN_PASSWORD=pgpool_password
       - PGPOOL_LOG_LEVEL=DEBUG
+    healthcheck:
+      test: [ "CMD", "/opt/bitnami/scripts/pgpool/healthcheck.sh" ]
+      interval: 10s
+      timeout: 15s
+      retries: 5
     depends_on:
       - postgresql-master
       - postgresql-slave
@@ -105,7 +113,10 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: my_password
     depends_on:
-      - pgpool
+      pgpool:
+        condition: service_healthy
+    restart: always
+
 
 volumes:
   postgresql_master_data:

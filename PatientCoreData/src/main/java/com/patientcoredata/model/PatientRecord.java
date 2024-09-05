@@ -35,7 +35,7 @@ public class PatientRecord {
     @Column(name = "date_of_birth")
     private LocalDateTime dateOfBirth;
 
-    @Column(name = "blood_type")
+    @Enumerated(EnumType.STRING)
     private BloodType bloodType;
 
     @Column(name = "cm_height")

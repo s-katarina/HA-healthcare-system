@@ -9,5 +9,6 @@ import java.util.UUID;
 public interface PatientRecordRepository extends JpaRepository<PatientRecord, UUID> {
 
     Optional<PatientRecord> findByPatientId(String patientId);
+    boolean existsByPatientId(String patientId);
 
 }
