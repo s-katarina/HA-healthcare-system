@@ -25,6 +25,7 @@ services:
       interval: 10s
       retries: 5
       timeout: 15s
+    restart: always
 
   postgresql-slave:
     image: 'docker.io/bitnami/postgresql-repmgr:latest'
@@ -45,12 +46,14 @@ services:
     volumes:
       - 'postgresql_slave_data:/bitnami/postgresql'
     depends_on:
-      - postgresql-master
+      postgresql-master:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 10s
       retries: 5
       timeout: 15s
+    restart: always
 
   postgresql-slave2:
     image: 'docker.io/bitnami/postgresql-repmgr:latest'
@@ -71,12 +74,14 @@ services:
     volumes:
       - 'postgresql_slave2_data:/bitnami/postgresql'
     depends_on:
-      - postgresql-master
+      postgresql-master:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 10s
       retries: 5
       timeout: 15s
+    restart: always
 
   pgpool:
     image: bitnami/pgpool:latest
@@ -98,9 +103,12 @@ services:
       timeout: 15s
       retries: 5
     depends_on:
-      - postgresql-master
-      - postgresql-slave
-      - postgresql-slave2
+      postgresql-master:
+        condition: service_healthy
+      postgresql-slave:
+        condition: service_healthy
+      postgresql-slave2:
+        condition: service_healthy
 
   patient-core-data-service:
     build:
