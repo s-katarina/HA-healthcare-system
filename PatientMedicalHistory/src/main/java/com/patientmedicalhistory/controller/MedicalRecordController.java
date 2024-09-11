@@ -35,4 +35,9 @@ public class MedicalRecordController {
         return medicalRecordRetrievalService.addMedicalRecord(dto);
     }
 
+    @GetMapping
+    ResponseEntity<List<GetMedicalRecordDTO>> getByPatientId(@RequestParam String patientId) {
+        return new ResponseEntity<>(medicalRecordRetrievalService.getByPatientId(patientId), HttpStatus.OK);
+    }
+
 }

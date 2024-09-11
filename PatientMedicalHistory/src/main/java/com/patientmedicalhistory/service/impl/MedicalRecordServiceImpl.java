@@ -31,7 +31,11 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
     @Override
     public List<GetMedicalRecordDTO> getByPatientId(String patientId) {
-        return List.of();
+        List<MedicalRecord> medicalRecords = medicalRecordRepository.findByPatientId(patientId);
+        return medicalRecords
+                .stream()
+                .map(mapper::mapToDTO)
+                .toList();
     }
 
     @Override
