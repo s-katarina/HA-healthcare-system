@@ -23,8 +23,8 @@ services:
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 10s
-      retries: 5
-      timeout: 15s
+      timeout: 5s
+      retries: 3
     restart: always
 
   postgresql-slave:
@@ -51,8 +51,8 @@ services:
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 10s
-      retries: 5
-      timeout: 15s
+      timeout: 5s
+      retries: 3
     restart: always
 
   postgresql-slave2:
@@ -79,8 +79,8 @@ services:
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 10s
-      retries: 5
-      timeout: 15s
+      timeout: 5s
+      retries: 3
     restart: always
 
   pgpool:
@@ -100,8 +100,8 @@ services:
     healthcheck:
       test: [ "CMD", "/opt/bitnami/scripts/pgpool/healthcheck.sh" ]
       interval: 10s
-      timeout: 15s
-      retries: 5
+      timeout: 5s
+      retries: 3
     depends_on:
       postgresql-master:
         condition: service_healthy
