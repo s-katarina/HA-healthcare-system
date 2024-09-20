@@ -27,7 +27,7 @@ public class PatientRecordController {
 
     @GetMapping("/all")
     ResponseEntity<List<GetPatientRecordDTO>> getAllPatientRecords() {
-        return new ResponseEntity<>(patientRecordService.getAll(), HttpStatus.FOUND);
+        return new ResponseEntity<>(patientRecordService.getAll(), HttpStatus.OK);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -4,45 +4,49 @@ services:
   postgresql-master:
     image: 'docker.io/bitnami/postgresql-repmgr:latest'
     ports:
-      - '5432:5432'
+      - '5432'
     environment:
       - POSTGRESQL_POSTGRES_PASSWORD=my_password
       - POSTGRESQL_USERNAME=my_user
       - POSTGRESQL_PASSWORD=my_password
       - POSTGRESQL_DATABASE=my_database
       - REPMGR_PRIMARY_HOST=postgresql-master
-      - REPMGR_PARTNER_NODES=pg-1,pg-2,pg-0
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-1:5432,pg-2:5432,pg-0
       - REPMGR_NODE_NAME=pg-0
       - REPMGR_NODE_ID=1
       - REPMGR_NODE_NETWORK_NAME=postgresql-master
       - REPMGR_USERNAME=repmgr_user
       - REPMGR_PASSWORD=repmgr_password
+      - REPMGR_PORT_NUMBER=5432
     volumes:
       - 'postgresql_master_data:/bitnami/postgresql'
       - './init.sql:/docker-entrypoint-initdb.d/init.sql'
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      interval: 15s
+      timeout: 10s
+      retries: 5
     restart: always
 
   postgresql-slave:
     image: 'docker.io/bitnami/postgresql-repmgr:latest'
     ports:
-      - '5433:5432'
+      - '5432'
     environment:
       - POSTGRESQL_POSTGRES_PASSWORD=my_password
       - POSTGRESQL_USERNAME=my_user
       - POSTGRESQL_PASSWORD=my_password
       - POSTGRESQL_DATABASE=my_database
       - REPMGR_PRIMARY_HOST=postgresql-master
-      - REPMGR_PARTNER_NODES=pg-0,pg-2,pg-1
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-0,pg-2:5432,pg-1:5432
       - REPMGR_NODE_NAME=pg-1
       - REPMGR_NODE_ID=2
       - REPMGR_NODE_NETWORK_NAME=postgresql-slave
       - REPMGR_USERNAME=repmgr_user
       - REPMGR_PASSWORD=repmgr_password
+      - REPMGR_PORT_NUMBER=5432
     volumes:
       - 'postgresql_slave_data:/bitnami/postgresql'
     depends_on:
@@ -50,27 +54,29 @@ services:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      interval: 15s
+      timeout: 10s
+      retries: 5
     restart: always
 
   postgresql-slave2:
     image: 'docker.io/bitnami/postgresql-repmgr:latest'
     ports:
-      - '5434:5432'
+      - '5432'
     environment:
       - POSTGRESQL_POSTGRES_PASSWORD=my_password
       - POSTGRESQL_USERNAME=my_user
       - POSTGRESQL_PASSWORD=my_password
       - POSTGRESQL_DATABASE=my_database
       - REPMGR_PRIMARY_HOST=postgresql-master
-      - REPMGR_PARTNER_NODES=pg-0,pg-1,pg-2
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-0,pg-1:5432,pg-2:5432
       - REPMGR_NODE_NAME=pg-2
       - REPMGR_NODE_ID=3
       - REPMGR_NODE_NETWORK_NAME=postgresql-slave2
       - REPMGR_USERNAME=repmgr_user
       - REPMGR_PASSWORD=repmgr_password
+      - REPMGR_PORT_NUMBER=5432
     volumes:
       - 'postgresql_slave2_data:/bitnami/postgresql'
     depends_on:
@@ -78,17 +84,20 @@ services:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      interval: 15s
+      timeout: 10s
+      retries: 5
     restart: always
 
   pgpool:
     image: bitnami/pgpool:latest
     ports:
-      - '5435:5432'
+      - '5432:5432'
+    volumes:
+      - ./mypgpool.conf:/config/myconf.conf
     environment:
-      - PGPOOL_BACKEND_NODES=1:postgresql-master:5432,2:postgresql-slave:5433,3:postgresql-slave2:5434
+      - PGPOOL_USER_CONF_FILE=/config/myconf.conf
+      - PGPOOL_BACKEND_NODES=1:postgresql-master:5432,2:postgresql-slave:5432,3:postgresql-slave2:5432
       - PGPOOL_ENABLE_LOAD_BALANCING=yes
       - PGPOOL_SR_CHECK_USER=repmgr_user
       - PGPOOL_SR_CHECK_PASSWORD=repmgr_password
@@ -98,10 +107,10 @@ services:
       - PGPOOL_ADMIN_PASSWORD=pgpool_password
       - PGPOOL_LOG_LEVEL=DEBUG
     healthcheck:
-      test: [ "CMD", "/opt/bitnami/scripts/pgpool/healthcheck.sh" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      test: [ "CMD", "/opt/bitnami/scripts/pgpool/healthcheck.sh"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
     depends_on:
       postgresql-master:
         condition: service_healthy
